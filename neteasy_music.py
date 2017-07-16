@@ -26,7 +26,7 @@ def getPage(pageIndex):
     soup = BeautifulSoup(_session.get(pageUrl).content)
     songList = soup.findAll('a', attrs={'class': 'tit f-thide s-fc0'})
     for i in songList:
-        print i['href']
+        print "Song List Name:" + i['title'] + ",Song List ID:" + i['href']
         getPlayList(i['href'])
 
 
@@ -36,7 +36,9 @@ def getPlayList(playListId):
     songList = soup.find('ul', attrs={'class': 'f-hide'})
     for i in songList.findAll('li'):
         startIndex = (i.find('a'))['href']
+        songName = i.find('a').text;
         songId = startIndex.split('=')[1]
+        print "Song Name:" + songName + ", Song ID:" + songId
         readEver(songId)
 
 
@@ -76,11 +78,22 @@ def readEver(songId):
     encSecKey = rsaEncrypt(secKey, pubKey, modulus)
     data = {'params': encText, 'encSecKey': encSecKey}
     req = requests.post(url, headers=headers, data=data)
-    total = req.json()['total']
-    if int(total) > 1000:
-        print songId, total
-    else:
-        pass
+    commentsJson = req.json()
+    total = commentsJson['total']
+    hotComments = commentsJson['hotComments']
+    for i in hotComments:
+        hotCommentsUser = i['user']['nickname']
+        hotCommentContent = i['content']
+        hotCommentLikedCount = i['likedCount']
+        if int(hotCommentLikedCount) > 5000:
+            print hotCommentsUser + ": " + hotCommentContent + " Liked:" + str(hotCommentLikedCount)
+        else:
+            pass
+
+    # if int(total) > 1000:
+    #     print songId, total
+    # else:
+    #     pass
 
 
 if __name__ == '__main__':
